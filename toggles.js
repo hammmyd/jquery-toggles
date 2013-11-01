@@ -3,11 +3,11 @@
 Copyright 2013 Simon Tabor - MIT License
 https://github.com/simontabor/jquery-toggles / http://simontabor.com/labs/toggles
 */
-$.fn['toggles'] = function(options) {
+jQuery.fn['toggles'] = function(options) {
   options = options || {};
 
   // extend default opts with the users options
-  var opts = $.extend({
+  var opts = jQuery.extend({
     'drag': true, // can the toggle be dragged
     'click': true, // can it be clicked to toggle
     'text': {
@@ -21,15 +21,16 @@ $.fn['toggles'] = function(options) {
     'clicker': null, // element that can be clicked on to toggle. removes binding from the toggle itself (use nesting)
     'width': 50, // width used if not set in css
     'height': 20, // height if not set in css
+    'blobWidth': 10, // width of .toggle-blob
     'type': 'compact' // defaults to a compact toggle, other option is 'select' where both options are shown at once
   },options);
 
   var selectType = (opts['type'] == 'select');
 
   // ensure these are jquery elements
-  opts['checkbox'] = $(opts['checkbox']); // doesnt matter for checkbox
+  opts['checkbox'] = jQuery(opts['checkbox']); // doesnt matter for checkbox
 
-  if (opts['clicker']) opts['clicker'] = $(opts['clicker']); // leave as null if not set
+  if (opts['clicker']) opts['clicker'] = jQuery(opts['clicker']); // leave as null if not set
 
   // use native transitions if possible
   var transition = 'margin-left '+opts['animate']+'ms '+opts['transition'];
@@ -47,7 +48,7 @@ $.fn['toggles'] = function(options) {
   };
 
   // this is the actual toggle function which does the toggling
-  var doToggle = function(slide, width, height, state) {
+  var doToggle = function(blobWidth, slide, width, height, state) {
     var active = slide.toggleClass('active').hasClass('active');
 
     if (state === active) return;
@@ -62,7 +63,7 @@ $.fn['toggles'] = function(options) {
 
     if (selectType) return;
 
-    var margin = active ? 0 : -width + height;
+    var margin = active ? 0 : -width + blobWidth;
 
     // move the toggle!
     inner.css('margin-left',margin);
@@ -77,10 +78,11 @@ $.fn['toggles'] = function(options) {
 
   // start setting up the toggle(s)
   return this.each(function() {
-    var toggle = $(this);
+    var toggle = jQuery(this);
 
     var height = toggle.height();
     var width = toggle.width();
+    var blobWidth = opts.blobWidth;
 
     // if the element doesnt have an explicit height/width in css, set them
     if (!height || !width) {
@@ -89,14 +91,15 @@ $.fn['toggles'] = function(options) {
     }
 
     var div = '<div class="toggle-';
-    var slide = $(div+'slide">'); // wrapper inside toggle
-    var inner = $(div+'inner">'); // inside slide, this bit moves
-    var on = $(div+'on">'); // the on div
-    var off = $(div+'off">'); // off div
-    var blob = $(div+'blob">'); // the grip toggle blob
+    var slide = jQuery(div+'slide">'); // wrapper inside toggle
+    var inner = jQuery(div+'inner">'); // inside slide, this bit moves
+    var on = jQuery(div+'on">'); // the on div
+    var off = jQuery(div+'off">'); // off div
+    var blob = jQuery(div+'blob">'); // the grip toggle blob
 
     var halfheight = height/2;
-    var onoffwidth = width - halfheight;
+    var halfBlobWidth = blobWidth/2;
+    var onoffwidth = width - halfBlobWidth;
 
     // set up the CSS for the individual elements
     on
@@ -104,7 +107,7 @@ $.fn['toggles'] = function(options) {
         height: height,
         width: onoffwidth,
         textAlign: 'center',
-        textIndent: selectType ? '' : -halfheight,
+        textIndent: selectType ? '' : -halfBlobWidth,
         lineHeight: height+'px'
       })
       .html(opts['text']['on']);
@@ -113,9 +116,9 @@ $.fn['toggles'] = function(options) {
       .css({
         height: height,
         width: onoffwidth,
-        marginLeft: selectType ? '' : -halfheight,
+        marginLeft: selectType ? '' : -halfBlobWidth,
         textAlign: 'center',
-        textIndent: selectType ? '' : halfheight,
+        textIndent: selectType ? '' : halfBlobWidth,
         lineHeight: height+'px'
       })
       .html(opts['text']['off'])
@@ -123,13 +126,13 @@ $.fn['toggles'] = function(options) {
 
     blob.css({
       height: height,
-      width: height,
-      marginLeft: -halfheight
+      width: blobWidth,
+      marginLeft: -halfBlobWidth
     });
 
     inner.css({
-      width: width * 2 - height,
-      marginLeft: selectType ? 0 : -width + height
+      width: width * 2 - blobWidth,
+      marginLeft: selectType ? 0 : -width + blobWidth
     });
 
     if (selectType) {
@@ -147,22 +150,22 @@ $.fn['toggles'] = function(options) {
       // stop bubbling
       if (e) e.stopPropagation();
 
-      doToggle(slide,width,height);
+      doToggle(blobWidth,slide,width,height);
       toggle.trigger('toggle',!active);
     });
 
     // setup events for toggling on or off
     toggle.on('toggleOn', function() {
-      doToggle(slide, width, height, false);
+      doToggle(blobWidth,slide, width, height, false);
     });
     toggle.on('toggleOff', function() {
-      doToggle(slide, width, height, true);
+      doToggle(blobWidth,slide, width, height, true);
     });
 
     if (opts['on']) {
 
       // toggle immediately to turn the toggle on
-      doToggle(slide,width,height);
+      doToggle(blobWidth,slide,width,height);
     }
 
     // if click is enabled and toggle isn't within the clicker element (stops double binding)
@@ -228,14 +231,14 @@ $.fn['toggles'] = function(options) {
 
           // go back again
           inner.animate({
-            marginLeft: -width + height
+            marginLeft: -width + blobWidth
           },opts.animate/2);
         }
       }
 
     };
 
-    var wh = -width + height;
+    var wh = -width + blobWidth;
 
     blob.on('mousedown', function(e) {
 
